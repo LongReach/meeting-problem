@@ -30,7 +30,7 @@ class Item(object):
     def get_item(idx):
         return Item.items[idx]
 
-
+# Multiple rooms: a combination would have multiple arrays instead of one
 class Combination(object):
 
     def __init__(self, item=None):
@@ -131,6 +131,9 @@ meetings = [(9,14), (0,12), (4,7), (11,21), (0,1), (5,7), (10,10), (15,22), (9,1
 
 process_meeting_list(meetings)
 
+# Each
+combinations_for_subset = []
+
 def get_combinations(n):
     if n == 0:
         # Most trivial subset
@@ -138,7 +141,41 @@ def get_combinations(n):
 
     combos = get_combinations(n-1)
     new_combos = Combination.generate_new_combos(combos, Item.items[n])
-    return combos + new_combos
+    combos = combos + new_combos
+    combos.sort(key=lambda x: x.score, reverse=True)
+
+    # remove any combos that underperform
+    if len(combos) > 1:
+        potential_points_left = len(Item.items) - 1 - n
+        # Find the best and worst scores. If worst score can be added to potential points remaining and still
+        # not beat best score, throw it out.
+        scores = []
+        for c in combos:
+            if c.score not in scores:
+                scores.insert(0, c.score)
+        if len(scores) > 1:
+            while(True):
+                remove_lowest_score = False
+                for i in range(1,len(scores)):
+                    if scores[0] + potential_points_left <= scores[i]:
+                        remove_lowest_score = True
+                        break
+                if not remove_lowest_score:
+                    break
+                scores.pop(0)
+        # Now we have an array of scores that are valid. Remove every combo that scores lower than lowest score
+        print("*** Remove scores at or below",scores[0]-1,", potential points left",potential_points_left,", best score",scores[-1])
+        underperformers = []
+        fresh_list = []
+        for c in combos:
+            if c.score >= scores[0]:
+                fresh_list.append(c)
+            else:
+                underperformers.append(c.get_as_str())
+        print("   underperformers were ", underperformers)
+        combos = fresh_list
+
+    return combos
 
 def print_item_set():
     print("\nmeetings are")
