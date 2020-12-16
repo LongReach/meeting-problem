@@ -30,6 +30,14 @@ class Item(object):
     def get_item(idx):
         return Item.items[idx]
 
+    @staticmethod
+    def num_items():
+        return len(Item.items)
+
+    @staticmethod
+    def clear():
+        Item.items = []
+
 # Multiple rooms: a combination would have multiple arrays instead of one
 class Combination(object):
 
@@ -71,13 +79,23 @@ class Combination(object):
         return str_list
 
     def get_as_str(self):
-        out_str = "("
-        sep_str = ""
+        out_str, sep_str = "(", ""
         for item in self.array:
             if item is not None:
                 out_str = out_str + sep_str + chr(ord('a') + item.index)
                 sep_str = ","
         out_str = out_str + ")"
+        return out_str
+
+    def __str__(self):
+        return self.get_as_str()
+
+    @staticmethod
+    def get_combo_list_as_str(combos):
+        out_str, sep_str = "", ""
+        for c in combos:
+            out_str = out_str + sep_str + str(c)
+            sep_str = ","
         return out_str
 
     @staticmethod
@@ -121,3 +139,70 @@ class Combination(object):
             combo.add_item(new_item)
         return fresh_list
 
+# The entry for each subset (1...n) contains a dictionary of:
+#     combinations found by solving the subset
+#     combinations removed
+#     best score
+#     removal score
+combinations_for_subset = []
+
+def get_combinations(n=None):
+    global combinations_for_subset
+    n = Item.num_items()-1 if n is None else n
+    subset_info_dict = {'combos':[], 'removed':[], 'best_score':0, 'removal_score':0, 'subset':0}
+    if n == 0:
+        # Most trivial subset
+        combos = [Combination(), Combination(Item.items[0])]
+        combinations_for_subset = [None for i in Item.items] # initialize this array
+        subset_info_dict['combos'] = combos
+        subset_info_dict['best_score'] = 1
+        combinations_for_subset[n] = subset_info_dict
+        return combos
+
+    combos = get_combinations(n-1)
+    new_combos = Combination.generate_new_combos(combos, Item.items[n])
+    combos = combos + new_combos
+    combos.sort(key=lambda x: x.score, reverse=True)
+
+
+    # remove any combos that underperform
+    if len(combos) > 1:
+        potential_points_left = Item.num_items() - 1 - n
+        # Find the best and worst scores. If worst score can be added to potential points remaining and still
+        # not beat best score, throw it out.
+        scores = []
+        for c in combos:
+            if c.score not in scores:
+                scores.insert(0, c.score)
+        if len(scores) > 1:
+            while(True):
+                remove_lowest_score = False
+                for i in range(1,len(scores)):
+                    if scores[0] + potential_points_left <= scores[i]:
+                        remove_lowest_score = True
+                        break
+                if not remove_lowest_score:
+                    break
+                scores.pop(0)
+        # Now we have an array of scores that are valid. Remove every combo that scores lower than lowest score
+        underperformers = []
+        fresh_list = []
+        for c in combos:
+            if c.score >= scores[0]:
+                fresh_list.append(c)
+            else:
+                underperformers.append(c)
+        subset_info_dict['removed'] = underperformers
+        subset_info_dict['best_score'] = scores[-1]
+        subset_info_dict['removal_score'] = scores[0]-1
+        combos = fresh_list
+
+    subset_info_dict['combos'] = combos
+    subset_info_dict['subset'] = n
+    combinations_for_subset[n] = subset_info_dict
+
+    return combos
+
+# Contains: "combos", "removed", "best_score", "removal_score"
+def get_stored_info_dict(subset_num):
+    return combinations_for_subset[subset_num]
