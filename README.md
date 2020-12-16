@@ -8,6 +8,10 @@ This is a coding problem I selected semi-randomly from a collection of problems 
 
 ## The problem
 
+![](images/MeetingWithTheBobs.jpg) 
+
+`from "Office Space"`
+
 A company has a single meeting room. There are N potential meetings that might happen over the course of the day. Each meeting has an already-known start time and end time. Some combinations of meetings aren't possible. The goal is to choose a combination of meetings that maximizes the number that actually take place.
 
 Below, a set of potential meetings (from the program's output). `a` and `b` are scheduled at the very beginning of the day.
@@ -44,15 +48,59 @@ The solution for the first N-1 items is simply a recursion of the general soluti
 
 Once we've generated all combinations for a given subset, `1...n`, we observe that there only N - n remaining points that can be collected. I'll pick `m = N - n` to represent that. Thus, if m points are available, we can discard combinations which score so badly that adding m points can't possibly beat the best existing combinations in subset `1...n`.
 
+### Still more optimization through initial sorting
+
+Given a set of potential meetings, we can sort them into different orders before presenting them to the algorithm:
+
+Sort method | Description
+------------|-----------
+`none`|No sorting
+`start`|Sort by start time
+`shortest`|Sort from shortest to longest
+`longest`|Sort from longest to shortest
+
+Stat collection shows that pre-sorting by start time is generally the best, and pre-sorting from shortest to longest is the worst.
+
+```
+Best sort method
+    none: 6
+    start: 53
+    shortest: 0
+    longest: 41
+Worst sort method
+    none: 4
+    start: 0
+    shortest: 96
+    longest: 0
+```
+
+![](images/ByePrinter.jpg)
+
+`You are the worst, shortest-to-longest` 
+
 ## Testing
 
-The test code does the following, after creating a predefined set of meetings:
-* Try to combine some items, yielding combinations that work
-* Test several different combinations for clashes
-* Run the algorithm several times, after sorting the predefined set of meetings into different orders
+Run with:
+
+> python MeetingProblem --test CODE
+
+Code | Description
+------------|-----------
+0     | Predefined meetings. Try to combine some items, yielding combinations that work. Test several different combinations for clashes
+1 | Predefined meetings. Run the algorithm several times, after sorting the predefined set of meetings into different orders.
+2 | Generate a random set of meetings. Run the algorithm several times, after sorting the predefined set of meetings into different orders.
+3 | Generate many sets of meetings. Determine which pre-sorting method is best on average, which is worst.
+
+## Potential Improvements
+
+* Allow for some meetings to have a higher priority (a higher score)
+* Allow the company to have multiple meeting rooms
+
+Neither improvement would be difficult to implement. In the latter case, a single combination would list the meetings in each room as separate sets.
 
 ## Sample Output
 
+This is for an unsorted set of meetings:
 ```
 Meeting list with sort method: none
 meetings are
@@ -69,62 +117,62 @@ meetings are
 9:    jjjj
 ------
 subset: 0
-combos: (),(a)
-removed:
+combos: 2 (),(a)
+removed: 0
 best score: 1
 removal score: 0
 ------
 subset: 1
-combos: (a),(b),()
-removed:
+combos: 3 (a),(b),()
+removed: 0
 best score: 1
 removal score: -
 ------
 subset: 2
-combos: (a,c),(a),(b),(c),()
-removed:
+combos: 5 (a,c),(a),(b),(c),()
+removed: 0
 best score: 2
 removal score: -
 ------
 subset: 3
-combos: (a,c),(c,d),(a),(b),(c),(d),()
-removed:
+combos: 7 (a,c),(c,d),(a),(b),(c),(d),()
+removed: 0
 best score: 2
 removal score: -
 ------
 subset: 4
-combos: (a,c,e),(c,d,e),(a,c),(c,d),(a,e),(c,e),(d,e),(a),(b),(c),(d),(e),()
-removed:
+combos: 13 (a,c,e),(c,d,e),(a,c),(c,d),(a,e),(c,e),(d,e),(a),(b),(c),(d),(e),()
+removed: 0
 best score: 3
 removal score: -
 ------
 subset: 5
-combos: (a,c,e),(c,d,e),(a,e,f),(d,e,f),(a,c),(c,d),(a,e),(c,e),(d,e),(a,f),(d,f),(e,f),(a),(b),(c),(d),(e),(f),()
-removed:
+combos: 19 (a,c,e),(c,d,e),(a,e,f),(d,e,f),(a,c),(c,d),(a,e),(c,e),(d,e),(a,f),(d,f),(e,f),(a),(b),(c),(d),(e),(f),()
+removed: 0
 best score: 3
 removal score: -
 ------
 subset: 6
-combos: (c,d,e,g),(d,e,f,g),(a,c,e),(c,d,e),(a,e,f),(d,e,f),(c,d,g),(c,e,g),(d,e,g),(d,f,g),(e,f,g),(a,c),(c,d),(a,e),(c,e),(d,e),(a,f),(d,f),(e,f),(c,g),(d,g),(e,g),(f,g)
-removed: (a),(b),(c),(d),(e),(f),(g),()
+combos: 23 (c,d,e,g),(d,e,f,g),(a,c,e),(c,d,e),(a,e,f),(d,e,f),(c,d,g),(c,e,g),(d,e,g),(d,f,g),(e,f,g),(a,c),(c,d),(a,e),(c,e),(d,e),(a,f),(d,f),(e,f),(c,g),(d,g),(e,g),(f,g)
+removed: 8 (a),(b),(c),(d),(e),(f),(g),()
 best score: 4
 removal score: 1
 ------
 subset: 7
-combos: (c,d,e,g),(d,e,f,g),(a,c,e,h),(a,e,f,h),(c,e,g,h),(e,f,g,h),(a,c,e),(c,d,e),(a,e,f),(d,e,f),(c,d,g),(c,e,g),(d,e,g),(d,f,g),(e,f,g),(a,c,h),(a,e,h),(c,e,h),(a,f,h),(e,f,h),(c,g,h),(e,g,h),(f,g,h)
-removed: (a,c),(c,d),(a,e),(c,e),(d,e),(a,f),(d,f),(e,f),(c,g),(d,g),(e,g),(f,g)
+combos: 23 (c,d,e,g),(d,e,f,g),(a,c,e,h),(a,e,f,h),(c,e,g,h),(e,f,g,h),(a,c,e),(c,d,e),(a,e,f),(d,e,f),(c,d,g),(c,e,g),(d,e,g),(d,f,g),(e,f,g),(a,c,h),(a,e,h),(c,e,h),(a,f,h),(e,f,h),(c,g,h),(e,g,h),(f,g,h)
+removed: 12 (a,c),(c,d),(a,e),(c,e),(d,e),(a,f),(d,f),(e,f),(c,g),(d,g),(e,g),(f,g)
 best score: 4
 removal score: 2
 ------
 subset: 8
-combos: (c,d,e,g),(d,e,f,g),(a,c,e,h),(a,e,f,h),(c,e,g,h),(e,f,g,h),(c,e,h,i),(e,f,h,i)
-removed: (a,c,e),(c,d,e),(a,e,f),(d,e,f),(c,d,g),(c,e,g),(d,e,g),(d,f,g),(e,f,g),(a,c,h),(a,e,h),(c,e,h),(a,f,h),(e,f,h),(c,g,h),(e,g,h),(f,g,h)
+combos: 8 (c,d,e,g),(d,e,f,g),(a,c,e,h),(a,e,f,h),(c,e,g,h),(e,f,g,h),(c,e,h,i),(e,f,h,i)
+removed: 17 (a,c,e),(c,d,e),(a,e,f),(d,e,f),(c,d,g),(c,e,g),(d,e,g),(d,f,g),(e,f,g),(a,c,h),(a,e,h),(c,e,h),(a,f,h),(e,f,h),(c,g,h),(e,g,h),(f,g,h)
 best score: 4
 removal score: 3
 ------
 subset: 9
-combos: (c,d,e,g),(d,e,f,g),(a,c,e,h),(a,e,f,h),(c,e,g,h),(e,f,g,h),(c,e,h,i),(e,f,h,i)
-removed:
+combos: 8 (c,d,e,g),(d,e,f,g),(a,c,e,h),(a,e,f,h),(c,e,g,h),(e,f,g,h),(c,e,h,i),(e,f,h,i)
+removed: 0
 best score: 4
 removal score: 3
 -------
@@ -137,4 +185,5 @@ final outcome
 (e,f,g,h)
 (c,e,h,i)
 (e,f,h,i)
+biggest subset size: 23
 ```
