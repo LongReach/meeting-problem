@@ -2,9 +2,15 @@
 
 **Solution to a Meeting Scheduling Problem**
 
+## 2025 Note
+
+To potential employers: I created this back in 2020. My Python skills have improved a great deal since then.
+
 ## Overview
 
-This is a coding problem I selected semi-randomly from a collection of problems online. I figured out the solution myself and wrote the code myself. Please respect my effort and credit me if you use this code.
+_Original Text:_
+
+This is a coding problem I selected semi-randomly from a collection of problems online. My work here is entirely original. I deliberately spelled out my thought process.
 
 ## The problem
 
